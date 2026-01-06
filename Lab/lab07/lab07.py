@@ -40,6 +40,12 @@ class Account:
         """Return the number of years until balance would grow to amount."""
         assert self.balance > 0 and amount > 0 and self.interest > 0
         "*** YOUR CODE HERE ***"
+        year = 0
+        balance = self.balance
+        while(balance < amount):
+            balance = balance * (1 + Account.interest)
+            year = year + 1
+        return year
 
 
 class FreeChecking(Account):
@@ -70,6 +76,20 @@ class FreeChecking(Account):
     free_withdrawals = 2
 
     "*** YOUR CODE HERE ***"
+    def __init__(self, account_holder):
+        self.free_withdrawals = FreeChecking.free_withdrawals
+    def withdraw(self, amount):
+        if self.free_withdrawals > 0:
+            self.free_withdrawals = self.free_withdrawals - 1
+            if amount > self.balance:
+                return "Insufficient funds"
+            self.balance = self.balance - amount
+        else:
+            if amount + FreeChecking.withdraw_fee > self.balance:
+                return "Insufficient funds"
+            self.balance = self.balance - amount - FreeChecking.withdraw_fee
+        
+        return self.balance
 
 
 def without(s, i):
@@ -86,7 +106,22 @@ def without(s, i):
     True
     """
     "*** YOUR CODE HERE ***"
-
+    if i == 0:
+        return s.rest
+    index = 0
+    cur = s
+    res = Link(cur.first)
+    head = res
+    
+    while(cur.rest is not Link.empty):
+        cur = cur.rest
+        index = index + 1
+        if(index != i):
+            res.rest = Link(cur.first)
+            res = res.rest
+            
+    return head
+        
 
 def duplicate_link(s, val):
     """Mutates s so that each element equal to val is followed by another val.
@@ -105,6 +140,14 @@ def duplicate_link(s, val):
     Link(1, Link(2, Link(2, Link(2, Link(2, Link(3))))))
     """
     "*** YOUR CODE HERE ***"
+    cur = s
+    while cur:
+        if(cur.first == val):
+            temp = Link(val, cur.rest)
+            cur.rest = temp
+            cur = temp.rest
+        else:
+            cur = cur.rest
 
 
 class Link:
@@ -128,7 +171,6 @@ class Link:
     <5 7 <8 9>>
     """
     empty = ()
-
     def __init__(self, first, rest=empty):
         assert rest is Link.empty or isinstance(rest, Link)
         self.first = first

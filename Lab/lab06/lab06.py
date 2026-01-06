@@ -7,6 +7,10 @@ class Transaction:
     def changed(self):
         """Return whether the transaction resulted in a changed balance."""
         "*** YOUR CODE HERE ***"
+        if(self.before != self.after):
+            return True
+        else:
+            return False
 
     def report(self):
         """Return a string describing the transaction.
@@ -21,6 +25,10 @@ class Transaction:
         msg = 'no change'
         if self.changed():
             "*** YOUR CODE HERE ***"
+            if(self.before > self.after):
+                msg = 'decreased ' + str(self.before) + '->' + str(self.after)
+            else:
+                msg = 'increased ' + str(self.before) + '->' + str(self.after)
         return str(self.id) + ': ' + msg
 
 class BankAccount:
@@ -29,15 +37,10 @@ class BankAccount:
     >>> a = BankAccount('Eric')
     >>> a.deposit(100)    # Transaction 0 for a
     100
-    >>> b = BankAccount('Erica')
     >>> a.withdraw(30)    # Transaction 1 for a
     70
     >>> a.deposit(10)     # Transaction 2 for a
     80
-    >>> b.deposit(50)     # Transaction 0 for b
-    50
-    >>> b.withdraw(10)    # Transaction 1 for b
-    40
     >>> a.withdraw(100)   # Transaction 3 for a
     'Insufficient funds'
     >>> len(a.transactions)
@@ -50,6 +53,12 @@ class BankAccount:
     1: decreased 100->70
     2: increased 70->80
     3: no change
+
+    >>> b = BankAccount('Erica')
+    >>> b.deposit(50)     # Transaction 0 for b
+    50
+    >>> b.withdraw(10)    # Transaction 1 for b
+    40
     >>> b.withdraw(100)   # Transaction 2 for b
     'Insufficient funds'
     >>> b.withdraw(30)    # Transaction 3 for b
@@ -67,11 +76,18 @@ class BankAccount:
     def __init__(self, account_holder):
         self.balance = 0
         self.holder = account_holder
+        self.id = 0
+        self.transactions = []
 
     def deposit(self, amount):
         """Increase the account balance by amount, add the deposit
         to the transaction history, and return the new balance.
         """
+        # ======== add =========
+        self.transactions.append(Transaction(self.id, self.balance, self.balance + amount))
+        self.id = self.id + 1
+        # ======== add =========
+
         self.balance = self.balance + amount
         return self.balance
 
@@ -80,7 +96,17 @@ class BankAccount:
         to the transaction history, and return the new balance.
         """
         if amount > self.balance:
+            # ======== add =========
+            self.transactions.append(Transaction(self.id, self.balance, self.balance))
+            self.id = self.id + 1
+            # ======== add =========
             return 'Insufficient funds'
+        
+        # ======== add =========
+        self.transactions.append(Transaction(self.id, self.balance, self.balance - amount))
+        self.id = self.id + 1
+        # ======== add =========
+        
         self.balance = self.balance - amount
         return self.balance
 
@@ -108,14 +134,14 @@ class Server:
         """Append the email to the inbox of the client it is addressed to.
             email is an instance of the Email class.
         """
-        ____.inbox.append(email)
+        self.clients[email.recipient_name].inbox.append(email)
 
     def register_client(self, client):
         """Add a client to the clients mapping (which is a 
         dictionary from client names to client instances).
             client is an instance of the Client class.
         """
-        ____[____] = ____
+        self.clients[client.name] = client
 
 class Client:
     """A client has a server, a name (str), and an inbox (list).
@@ -138,11 +164,11 @@ class Client:
         self.inbox = []
         self.server = server
         self.name = name
-        server.register_client(____)
+        server.register_client(self)
 
     def compose(self, message, recipient_name):
         """Send an email with the given message to the recipient."""
-        email = Email(message, ____, ____)
+        email = Email(message, self, recipient_name)
         self.server.send(email)
 
 
@@ -181,19 +207,25 @@ class Mint:
         self.update()
 
     def create(self, coin):
-        "*** YOUR CODE HERE ***"
+        "*** YOUR CODE HERE ***" 
+        new_coin = coin(self.year)
+        return new_coin
 
     def update(self):
         "*** YOUR CODE HERE ***"
+        self.year = Mint.present_year
 
 class Coin:
     cents = None # will be provided by subclasses, but not by Coin itself
-
     def __init__(self, year):
         self.year = year
 
     def worth(self):
         "*** YOUR CODE HERE ***"
+        if(Mint.present_year > self.year):
+            return self.cents + Mint.present_year - self.year - 50
+        else:
+            return self.cents
 
 class Nickel(Coin):
     cents = 5
